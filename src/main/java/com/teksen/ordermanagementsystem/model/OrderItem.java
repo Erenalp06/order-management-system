@@ -1,5 +1,6 @@
 package com.teksen.ordermanagementsystem.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -12,10 +13,12 @@ public class OrderItem {
 
     @ManyToOne
     @JoinColumn(name = "product_id")
+    @JsonBackReference
     private Product product;
 
     @ManyToOne
     @JoinColumn(name = "order_id")
+    @JsonBackReference
     private Order order;
 
     public OrderItem() {

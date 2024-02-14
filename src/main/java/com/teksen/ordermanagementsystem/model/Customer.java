@@ -1,5 +1,7 @@
 package com.teksen.ordermanagementsystem.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -14,7 +16,9 @@ public class Customer {
     private String lastName;
     private String email;
 
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    @JsonIgnore
     private List<Order> orders;
 
     public Customer() {

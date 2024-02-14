@@ -1,5 +1,6 @@
 package com.teksen.ordermanagementsystem.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -13,6 +14,7 @@ public class Product {
     private double price;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<OrderItem> orderItems;
 
     public Product(String productName, double price, List<OrderItem> orderItems) {
