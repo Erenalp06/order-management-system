@@ -13,14 +13,12 @@ public class Product {
     private String productName;
     private double price;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-    @JsonManagedReference
-    private List<OrderItem> orderItems;
 
-    public Product(String productName, double price, List<OrderItem> orderItems) {
+
+    public Product(String productName, double price) {
         this.productName = productName;
         this.price = price;
-        this.orderItems = orderItems;
+
     }
 
     public Product() {
@@ -51,21 +49,5 @@ public class Product {
         this.price = price;
     }
 
-    public List<OrderItem> getOrderItems() {
-        return orderItems;
-    }
 
-    public void setOrderItems(List<OrderItem> orderItems) {
-        this.orderItems = orderItems;
-    }
-
-    @Override
-    public String toString() {
-        return "Product{" +
-                "productId=" + productId +
-                ", productName='" + productName + '\'' +
-                ", price=" + price +
-                ", orderItems=" + orderItems +
-                '}';
-    }
 }
