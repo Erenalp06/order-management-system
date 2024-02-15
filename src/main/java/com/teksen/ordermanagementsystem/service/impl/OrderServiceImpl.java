@@ -5,8 +5,11 @@ import com.teksen.ordermanagementsystem.model.Order;
 import com.teksen.ordermanagementsystem.repository.OrderRepository;
 import com.teksen.ordermanagementsystem.service.CustomerService;
 import com.teksen.ordermanagementsystem.service.OrderService;
+import org.aspectj.weaver.ast.Or;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -32,8 +35,12 @@ public class OrderServiceImpl implements OrderService {
         );
     }
     @Override
-    public Order createOrder(Order toCreateOrder) {
-        return orderRepository.save(toCreateOrder);
+    public Order createOrder(Long customerId) {
+        Customer customer = customerService.getCustomerById(customerId);
+        Order order = new Order();
+        order.setCustomer(customer);
+        order.setOrderDate(new Date(System.currentTimeMillis()));
+        return orderRepository.save(order);
     }
 
     @Override
@@ -45,8 +52,15 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Boolean deleteOrderById(Long orderId) {
-        return orderRepository.deleteOrderByOrderId(orderId).isPresent();
+    public Boolean deleteOrderById(Long customerId, Long orderId) {
+        Order order = orderRepository.findOrderByOrderIdAndCustomerCustomerId(orderId, customerId).orElseThrow(
+                () -> new RuntimeException("order not found")
+        );
+        if(orderRepository.existsById(order.getOrderId())){
+            orderRepository.deleteById(order.getOrderId());
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -54,4 +68,13 @@ public class OrderServiceImpl implements OrderService {
         Customer customer = customerService.getCustomerById(customerId);
         return orderRepository.findByCustomer_CustomerId(customer.getCustomerId());
     }
+
+    @Override
+    public Order getOrderByCustomerId(Long orderId, Long customerId) {
+        return orderRepository.findOrderByOrderIdAndCustomerCustomerId(orderId, customerId).orElseThrow(
+                () -> new RuntimeException("order not found!")
+        );
+    }
+
+
 }

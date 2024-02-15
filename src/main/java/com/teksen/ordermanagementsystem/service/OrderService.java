@@ -8,8 +8,10 @@ public interface OrderService {
 
     List<Order> getAllOrders();
     Order getOrderById(Long orderId);
-    Order createOrder(Order toCreateOrder);
+    Order createOrder(Long customerId);
     Order updateOrder(Long orderId, Order toUpdateOrder);
-    Boolean deleteOrderById(Long orderId);
+    Boolean deleteOrderById(Long customerId, Long orderId);
     List<Order> getOrdersByCustomerId(Long customerId);
+
+    Order getOrderByCustomerId(Long orderId, Long customerId);
 }

@@ -3,6 +3,9 @@ package com.teksen.ordermanagementsystem.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 import java.util.List;
 
@@ -12,8 +15,16 @@ public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long customerId;
+
+    @NotNull
+    @Pattern(regexp = "^[a-zA-Z]+$")
     private String firstName;
+
+    @NotNull
+    @Pattern(regexp = "^[a-zA-Z]+$")
     private String lastName;
+
+    @Email
     private String email;
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
