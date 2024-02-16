@@ -59,5 +59,23 @@ public class CustomerController {
         );
     }
 
+    @DeleteMapping("{customerId}")
+    public ResponseEntity<Object> deleteCustomer(@PathVariable Long customerId){
+        if(Boolean.TRUE.equals(customerService.deleteCustomerById(customerId))){
+            return ResponseHandler.responseBuilder(
+                    "Customer has been successfully deleted",
+                    HttpStatus.OK,
+                    null
+            );
+        }else{
+            return ResponseHandler.responseBuilder(
+                    "Customer could not be deleted",
+                    HttpStatus.BAD_REQUEST,
+                    null
+            );
+        }
+
+    }
+
 
 }

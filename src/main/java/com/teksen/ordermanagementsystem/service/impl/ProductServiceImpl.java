@@ -1,8 +1,12 @@
 package com.teksen.ordermanagementsystem.service.impl;
 
+import com.teksen.ordermanagementsystem.exception.custom.ProductNotFoundException;
 import com.teksen.ordermanagementsystem.model.Product;
 import com.teksen.ordermanagementsystem.repository.ProductRepository;
 import com.teksen.ordermanagementsystem.service.ProductService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,24 +15,33 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
 
     public ProductServiceImpl(ProductRepository productRepository) {
+
         this.productRepository = productRepository;
     }
 
     @Override
     public List<Product> getAllProducts() {
+        logger.info("Getting all products");
         return productRepository.findAll();
     }
 
     @Override
     public Product getProductById(Long productId) {
-        return productRepository.findById(productId).orElseThrow(() -> new RuntimeException("product not found!"));
+        logger.info("Getting product by id: {}", productId);
+        return productRepository.findById(productId).orElseThrow(
+                () -> new ProductNotFoundException("Product with id: " + productId + " not found"));
     }
 
     @Override
     public Product createProduct(Product toCreateProduct) {
-        return productRepository.save(toCreateProduct);
+        try{
+            return productRepository.save(toCreateProduct);
+        } catch (Exception ex) {
+            throw new RuntimeException("An unexpected error occurred");
+        }
     }
 
     @Override
@@ -38,13 +51,22 @@ public class ProductServiceImpl implements ProductService {
         product.setProductName(toUpdateProduct.getProductName());
         product.setPrice(toUpdateProduct.getPrice());
 
-        return productRepository.save(product);
+        try{
+            return productRepository.save(product);
+        } catch (Exception ex) {
+            throw new RuntimeException("An unexpected error occurred");
+        }
     }
 
     @Override
     public Boolean deleteProductById(Long productId) {
         if(productRepository.existsById(productId)){
-            productRepository.deleteById(productId);
+            try{
+                productRepository.deleteById(productId);
+                logger.info("Product with id: {} deleted", productId);
+            } catch (DataAccessException ex) {
+                throw new RuntimeException("An unexpected error occurred");
+            }
             return true;
         }
         return false;

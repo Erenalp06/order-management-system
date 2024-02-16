@@ -1,6 +1,8 @@
 package com.teksen.ordermanagementsystem.service.impl;
 
 import com.teksen.ordermanagementsystem.dto.OrderItemDTO;
+import com.teksen.ordermanagementsystem.exception.custom.OrderItemNotFoundException;
+import com.teksen.ordermanagementsystem.exception.custom.OrderNotFoundException;
 import com.teksen.ordermanagementsystem.model.Order;
 import com.teksen.ordermanagementsystem.model.OrderItem;
 import com.teksen.ordermanagementsystem.model.Product;
@@ -8,10 +10,12 @@ import com.teksen.ordermanagementsystem.repository.OrderItemRepository;
 import com.teksen.ordermanagementsystem.service.OrderItemService;
 import com.teksen.ordermanagementsystem.service.OrderService;
 import com.teksen.ordermanagementsystem.service.ProductService;
+import org.slf4j.Logger;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
+import javax.xml.crypto.Data;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class OrderItemServiceImpl implements OrderItemService {
@@ -19,6 +23,7 @@ public class OrderItemServiceImpl implements OrderItemService {
     private final OrderItemRepository orderItemRepository;
     private final OrderService orderService;
     private final ProductService productService;
+    private final Logger logger = org.slf4j.LoggerFactory.getLogger(OrderItemServiceImpl.class);
 
     public OrderItemServiceImpl(OrderItemRepository orderItemRepository, OrderService orderService, ProductService productService) {
         this.orderItemRepository = orderItemRepository;
@@ -28,13 +33,15 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     @Override
     public List<OrderItem> getAllOrderItems() {
+        logger.info("Getting all order items");
         return orderItemRepository.findAll();
     }
 
     @Override
     public OrderItem getOrderItemById(Long orderItemId) {
+        logger.info("Getting order item by id: {}", orderItemId);
         return orderItemRepository.findById(orderItemId).orElseThrow(
-                () -> new RuntimeException("order item not found!")
+                () -> new OrderItemNotFoundException("Order item with id: " + orderItemId + " not found")
         );
     }
 
@@ -49,14 +56,19 @@ public class OrderItemServiceImpl implements OrderItemService {
         Product product = productService.getProductById(orderItemDTO.productId());
         orderItem.setProduct(product);
 
-        return orderItemRepository.save(orderItem);
+        try{
+            return orderItemRepository.save(orderItem);
+        } catch (Exception e) {
+            logger.error("An unexpected error occurred while creating order item: {}", orderItem, e);
+            throw new RuntimeException("Failed to create order item", e);
+        }
     }
 
     @Override
     public OrderItem updateOrderItem(Long customerId, Long orderId,OrderItemDTO orderItemDTO, Long orderItemId) {
         Order order = orderService.getOrderByCustomerId(orderId, customerId);
         OrderItem orderItem = orderItemRepository.findById(orderItemId).orElseThrow(
-                () -> new RuntimeException("order item not found")
+                () -> new OrderNotFoundException("Order item with id: " + orderItemId + " not found")
         );
 
         if(!order.equals(orderItem.getOrder())){
@@ -70,6 +82,7 @@ public class OrderItemServiceImpl implements OrderItemService {
         try {
             return orderItemRepository.save(orderItem);
         } catch (Exception e) {
+            logger.error("An unexpected error occurred while updating order item: {}", orderItem, e);
             throw new RuntimeException("Failed to update order item", e);
         }
     }
@@ -79,7 +92,7 @@ public class OrderItemServiceImpl implements OrderItemService {
 
         Order order = orderService.getOrderByCustomerId(orderId, customerId);
         OrderItem orderItem = orderItemRepository.findById(orderItemId).orElseThrow(
-                () -> new RuntimeException("order item not found")
+                () -> new OrderNotFoundException("Order item with id: " + orderItemId + " not found")
         );
 
         if(!order.equals(orderItem.getOrder())){
@@ -89,7 +102,9 @@ public class OrderItemServiceImpl implements OrderItemService {
         if(orderItemRepository.existsById(orderItemId)){
             try {
                 orderItemRepository.deleteById(orderItemId);
-            } catch (Exception e) {
+                logger.info("Deleting order item by id: {}", orderItemId);
+            } catch (DataAccessException e) {
+                logger.error("An unexpected error occurred while deleting order item: {}", orderItem, e);
                 throw new RuntimeException(e);
             }
             return true;
@@ -99,6 +114,7 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     @Override
     public List<OrderItem> getAllOrderItemsByOrderId(Long customerId, Long orderId) {
+        logger.info("Getting all order items by order id: {}", orderId);
         Order order = orderService.getOrderByCustomerId(orderId, customerId);
         return orderItemRepository.findByOrder_OrderId(order.getOrderId());
     }
